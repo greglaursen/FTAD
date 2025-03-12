@@ -132,7 +132,8 @@ for subtype, avg_kills in weapon_subtype_avg_kills.head().items():
     print(f"{subtype}: {avg_kills:.2f} average deaths")
 
 ##########
-
+# Attack Types per Year : bar chart w slider
+"""
 df = df_filtered.copy()
 
 df['year'] = df['date'].dt.year
@@ -207,7 +208,83 @@ fig.write_html("attack_types_by_year.html")
 
 # Optionally, you can display the figure in Jupyter notebook (if using Jupyter)
 #fig.show()
+"""
+############
+# Weapons Type per Year : bar chart with slider
 
+df = df_filtered.copy()
+df['year'] = df['date'].dt.year
+
+# Initialize an empty list to store frames for each year
+frames = []
+
+# Generate a frame for each unique year
+for year in df['year'].unique():
+    # Filter data for the current year
+    filtered_df = df[df['year'] == year]
+    
+    # Count the number of attacks by weapon type
+    weapon_type_counts = filtered_df['weaptype1_txt'].value_counts().reset_index()
+    weapon_type_counts.columns = ['Weapon Type', 'Number of Attacks']
+    
+    # Create a bar chart for this year
+    bar_chart = go.Bar(
+        x=weapon_type_counts['Weapon Type'],
+        y=weapon_type_counts['Number of Attacks'],
+        name=str(year)
+    )
+    
+    # Append the chart as a frame
+    frames.append(go.Frame(
+        data=[bar_chart],
+        name=str(year)
+    ))
+
+# Create the layout with a slider
+layout = go.Layout(
+    title="Number of Attacks by Weapon Type",
+    updatemenus=[dict(
+        type="buttons",
+        showactive=False,
+        buttons=[dict(
+            label="Play",
+            method="animate",
+            args=[None, dict(
+                frame=dict(duration=500, redraw=True),
+                fromcurrent=True
+            )]
+        )]
+    )],
+    sliders=[dict(
+        active=0,
+        currentvalue=dict(
+            font=dict(size=20),
+            visible=True,
+            prefix="Year: ",
+            xanchor="center"
+        ),
+        steps=[
+            dict(
+                args=[[str(year)], dict(frame=dict(duration=500, redraw=True), mode='immediate', transition=dict(duration=300))],
+                label=str(year),
+                method='animate'
+            ) for year in df['year'].unique()
+        ]
+    )]
+)
+
+# Create the figure and add frames
+fig = go.Figure(
+    data=frames[0].data,  # Start with the data of the first year
+    layout=layout,
+    frames=frames
+)
+
+# Export the figure as an HTML file
+#fig.write_html("weapon_types_by_year.html")
+
+# Optionally, you can display the figure in Jupyter notebook (if using Jupyter)
+fig.show()
 ###########
 # Gun attacks over time
 """
