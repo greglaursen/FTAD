@@ -24,11 +24,13 @@ df_Israel = df_combined[df_combined['country_txt'] == 'Israel']
 areas_of_interest = ['Central', 'Golan Heights', 'North Sinai', 'Northern', 'Southern', 'Tel Aviv', 'Jerusalem', 'Eilat', 'Haifa']
 df_filtered = df_Israel[df_Israel['provstate'].isin(areas_of_interest)]
 
+print(df_filtered['weapsubtype1_txt'].unique())
 ##########
+# Gun attacks over time
+
 df_filtered = df_filtered.copy()
 df_filtered['date'] = pd.to_datetime(df_filtered['date'], errors='coerce')
 
-# Gun attacks over time
 guns = ['Unknown Gun Type', 'Automatic or Semi-Automatic Rifle', 'Handgun', 'Rifle/Shotgun (non-automatic)']
 df_guns = df_filtered[df_filtered['weapsubtype1_txt'].isin(guns)]
 
@@ -54,7 +56,7 @@ fig = px.line(df_yearly_counts, x='year', y='gun_attacks_count',
               markers=True)
 
 # Set the x-axis to label every 5 years
-fig.update_xaxes(tickmode='array', tickvals=list(range(1973, 2020, 5)))
+fig.update_xaxes(tickmode='array', tickvals=list(range(1973, 2020, 2)))
 
 # Show the plot
 fig.show()
@@ -63,6 +65,46 @@ fig.show()
 fig.write_html("gun_attacks_per_year.html")
 
 ##################
+"""
+# Explosive attacks over time
+df_filtered = df_filtered.copy()
+df_filtered['date'] = pd.to_datetime(df_filtered['date'], errors='coerce')
+
+explosives = ['Explosives']
+df_explosive = df_filtered[df_filtered['weaptype1_txt'].isin(explosives)]
+
+# Extract year from the 'date' column and create a 'year' column
+df_explosive['year'] = df_explosive['date'].dt.year
+
+# Group by year and count the number of gun attacks for each year
+df_yearly_counts = df_explosive.groupby('year').size().reset_index(name='explosive_attacks_count')
+
+# Create a DataFrame with all years between 1972 and 2019
+all_years = pd.DataFrame({'year': range(1973, 2020)})
+
+# Merge with the gun attack counts, using 'left' join to include all years from 1973 to 2019
+df_yearly_counts = pd.merge(all_years, df_yearly_counts, on='year', how='left')
+
+# Fill any missing gun attack counts with 0 for years with no gun attacks
+df_yearly_counts['explosive_attacks_count'] = df_yearly_counts['explosive_attacks_count'].fillna(0).astype(int)
+
+# Create the plot with Plotly Express
+fig = px.line(df_yearly_counts, x='year', y='explosive_attacks_count', 
+              title='Number of Explosive Attacks per Year in Israel (1973-2019)', 
+              labels={'year': 'Year', 'explosive_attacks_count': 'Number of Explosive Attacks'},
+              markers=True)
+
+# Set the x-axis to label every 5 years
+fig.update_xaxes(tickmode='array', tickvals=list(range(1973, 2020, 2)))
+
+# Show the plot
+fig.show()
+
+# Export the plot to an HTML file
+fig.write_html("explosive_attacks_per_year.html")
+
+"""
+####################
 # HEATMAP: WEAPON TYPE AND LOCATION (+ WEST BANK)
 """
 # Filter the df_Israel DataFrame for the selected cities
@@ -562,74 +604,6 @@ plt.ylabel("Number of Incidents")
 plt.title("Number of Attacks by Weapon Type")
 plt.show()
 """
-
-#######
-# WEAPONS TYPE WEST BANK
-
-df_westbank = pd.read_csv('Weapons_Type_Location_WB.csv')
-
-df_westbank['weapsubtype1_txt'] = df_westbank['weapsubtype1_txt'].fillna('Unknown')
-
-heatmap_westbank = df_westbank.pivot_table(index='weapsubtype1_txt', columns='city', aggfunc='size', fill_value=0)
-
-# Count unique values in each column using nunique()
-n = df_westbank.nunique()
-
-print("Number of unique values in each column:\n", n)
-
-#print(df_westbank['city'].unique())
-"""
-# Plot the heatmap
-plt.figure(figsize=(10, 8))
-sns.heatmap(heatmap_westbank, annot=False, cmap='coolwarm', linewidths=0.5)
-
-# Labels and title
-plt.title('Heatmap of Weapon Subtypes by City: Judea and Samaria')
-plt.xlabel('City')
-plt.ylabel('Weapon Subtype')
-# Rotate x-axis labels for better visibility
-plt.xticks(rotation=45, ha='right', fontsize=10)
-plt.yticks(fontsize=10)
-
-plt.show()
-"""
-"""
-df_weapcity = df_combined.copy()
-
-weapons_cities = ['ID', 'date', 'provstate', 'city', 'weaptype1_txt', 'weapsubtype1_txt', 'nkill', 'nwound']
-
-df_weapcity = df_weapcity[weapons_cities]
-
-judea_samaria = ['West Bank']
-df_judea_samaria = df_weapcity[df_weapcity['provstate'].isin(judea_samaria)]
-
-df_judea_samaria['weapsubtype1_txt'] = df_judea_samaria['weapsubtype1_txt'].fillna('Unknown')
-
-print(df_judea_samaria.city.unique())
-"""
-"""
-# Create a pivot table
-heatmap_data_judea_samaria = df_judea_samaria.pivot_table(index='weapsubtype1_txt', columns='city', values='nkill', aggfunc='sum', fill_value=0).T
-
-# Plot the heatmap
-plt.figure(figsize=(10, 8))
-sns.heatmap(heatmap_data_judea_samaria, annot=False, cmap='coolwarm', linewidths=1)
-
-# Labels and title
-plt.title('Heatmap of Weapon Subtypes by City: Judea and Samaria')
-plt.xlabel('City')
-plt.ylabel('Weapon Subtype')
-# Rotate x-axis labels for better visibility
-plt.xticks(rotation=45, ha='right', fontsize=10)
-plt.yticks(fontsize=10)
-
-plt.show()
-
-#num_of_rows = len(df_judea_samaria)
-
-#print(f"The number of rows is {num_of_rows}")
-"""
-
 
 
 
