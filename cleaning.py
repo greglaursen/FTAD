@@ -24,6 +24,44 @@ df_Israel = df_combined[df_combined['country_txt'] == 'Israel']
 areas_of_interest = ['Central', 'Golan Heights', 'North Sinai', 'Northern', 'Southern', 'Tel Aviv', 'Jerusalem', 'Eilat', 'Haifa']
 df_filtered = df_Israel[df_Israel['provstate'].isin(areas_of_interest)]
 
+##########
+df_filtered = df_filtered.copy()
+df_filtered['date'] = pd.to_datetime(df_filtered['date'], errors='coerce')
+
+# Gun attacks over time
+guns = ['Unknown Gun Type', 'Automatic or Semi-Automatic Rifle', 'Handgun', 'Rifle/Shotgun (non-automatic)']
+df_guns = df_filtered[df_filtered['weapsubtype1_txt'].isin(guns)]
+
+# Extract year from the 'date' column and create a 'year' column
+df_guns['year'] = df_guns['date'].dt.year
+
+# Group by year and count the number of gun attacks for each year
+df_yearly_counts = df_guns.groupby('year').size().reset_index(name='gun_attacks_count')
+
+# Create a DataFrame with all years between 1972 and 2019
+all_years = pd.DataFrame({'year': range(1973, 2020)})
+
+# Merge with the gun attack counts, using 'left' join to include all years from 1973 to 2019
+df_yearly_counts = pd.merge(all_years, df_yearly_counts, on='year', how='left')
+
+# Fill any missing gun attack counts with 0 for years with no gun attacks
+df_yearly_counts['gun_attacks_count'] = df_yearly_counts['gun_attacks_count'].fillna(0).astype(int)
+
+# Create the plot with Plotly Express
+fig = px.line(df_yearly_counts, x='year', y='gun_attacks_count', 
+              title='Number of Gun Attacks per Year in Israel (1973-2019)', 
+              labels={'year': 'Year', 'gun_attacks_count': 'Number of Gun Attacks'},
+              markers=True)
+
+# Set the x-axis to label every 5 years
+fig.update_xaxes(tickmode='array', tickvals=list(range(1973, 2020, 5)))
+
+# Show the plot
+fig.show()
+
+# Export the plot to an HTML file
+fig.write_html("gun_attacks_per_year.html")
+
 ##################
 # HEATMAP: WEAPON TYPE AND LOCATION (+ WEST BANK)
 """
@@ -478,11 +516,10 @@ fig.update_layout(
 fig.show()
 
 
-fig.write_html('scatter_individual_attacks.html')
+#fig.write_html('scatter_individual_attacks.html')
 #print(df_filtered['provstate'].unique())
 """
-
-###########
+############
 # MONTHLY INCIDENTS - JANUARY 2019
 # Creating the DataFrame
 data_jan2019 = {
