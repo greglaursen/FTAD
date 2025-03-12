@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 df_large = pd.read_csv("FTAD_Clean_2025_02_13 - FTAD.csv")
 df_latlong = pd.read_csv("FTAD_Clean_2025_02_13 - lat_long.csv")
 
-good_cols = ['ID', 'imonth', 'iyear', 'date', 'country_txt', 'provstate', 'city', 'attacktype1_txt', 'targtype', 'weaptype1_txt', 'weapsubtype1_txt', 'nkill', 'nwound']
+good_cols = ['ID', 'date', 'country_txt', 'provstate', 'city', 'attacktype1_txt', 'targtype', 'weaptype1_txt', 'weapsubtype1_txt', 'nkill', 'nwound']
 
 df_condensed = df_large[good_cols]
 
@@ -24,10 +24,114 @@ df_Israel = df_combined[df_combined['country_txt'] == 'Israel']
 areas_of_interest = ['Central', 'Golan Heights', 'North Sinai', 'Northern', 'Southern', 'Tel Aviv', 'Jerusalem', 'Eilat', 'Haifa']
 df_filtered = df_Israel[df_Israel['provstate'].isin(areas_of_interest)]
 
-print(df_filtered['weapsubtype1_txt'].unique())
+df_filtered['date'] = pd.to_datetime(df_filtered['date'], errors='coerce')
+##########
+#Descriptive statistics
+df = df_filtered.copy()
+
+
+# 1. General overview of the data
+#print(df.info())
+
+# 2. Descriptive statistics for numerical columns
+numerical_stats = df[['nkill', 'nwound']].describe()
+print("Numerical Descriptive Statistics:")
+print(numerical_stats)
+
+# 3. Count the number of attacks by type
+attack_type_counts = df['attacktype1_txt'].value_counts()
+print("\nNumber of Attacks by Type:")
+print(attack_type_counts)
+
+# 4. Count the number of attacks by target type
+target_type_counts = df['targtype'].value_counts()
+print("\nNumber of Attacks by Target Type:")
+print(target_type_counts)
+
+# 5. Count the number of attacks by weapon type
+weapon_type_counts = df['weaptype1_txt'].value_counts()
+print("\nNumber of Attacks by Weapon Type:")
+print(weapon_type_counts)
+
+# 6. Count the number of attacks by city
+city_attack_counts = df['city'].value_counts().head(10)  # Top 10 cities with the most attacks
+print("\nTop 10 Cities with the Most Attacks:")
+print(city_attack_counts)
+
+# 7. Group by year (if 'date' column is in datetime format)
+df['date'] = pd.to_datetime(df['date'], errors='coerce')  # Ensure date is in datetime format
+df['year'] = df['date'].dt.year
+yearly_attack_counts = df['year'].value_counts().sort_index()
+print("\nNumber of Attacks per Year:")
+print(yearly_attack_counts)
+
+# 8. Calculate total deaths and injuries (if you want to sum kills and wounds)
+total_kills = df['nkill'].sum()
+total_wounds = df['nwound'].sum()
+print(f"\nTotal Kills: {total_kills}")
+print(f"Total Wounds: {total_wounds}")
+
+############# 
+# Killed and wounded
+# 1. Filter the conditions
+
+df = df_filtered.copy()
+
+no_killed_no_wounded = df[(df['nkill'] == 0) & (df['nwound'] == 0)]
+no_killed_but_wounded = df[(df['nkill'] == 0) & (df['nwound'] > 0)]
+killed_and_wounded = df[(df['nkill'] > 0) & (df['nwound'] > 0)]
+
+# 2. Calculate the number of attacks for each category
+no_killed_no_wounded_count = no_killed_no_wounded.shape[0]
+no_killed_but_wounded_count = no_killed_but_wounded.shape[0]
+killed_and_wounded_count = killed_and_wounded.shape[0]
+
+# 3. Calculate the total number of attacks
+total_attacks = df.shape[0]
+
+# 4. Calculate the percentage for each category
+no_killed_no_wounded_percentage = (no_killed_no_wounded_count / total_attacks) * 100
+no_killed_but_wounded_percentage = (no_killed_but_wounded_count / total_attacks) * 100
+killed_and_wounded_percentage = (killed_and_wounded_count / total_attacks) * 100
+
+# 5. Print the results
+print(f"Number of attacks where no one was killed or wounded: {no_killed_no_wounded_count} ({no_killed_no_wounded_percentage:.2f}%)")
+print(f"Number of attacks where no one was killed but people were wounded: {no_killed_but_wounded_count} ({no_killed_but_wounded_percentage:.2f}%)")
+print(f"Number of attacks where people were both killed and wounded: {killed_and_wounded_count} ({killed_and_wounded_percentage:.2f}%)")
+
+df = df_filtered.copy()
+
+# 1. Filter the dataset to include only attacks where people were killed
+attacks_with_kills = df[df['nkill'] > 0]
+
+# 2. Calculate the average number of people killed
+average_kills = attacks_with_kills['nkill'].mean()
+
+# 3. Print the result
+print(f"Average number of people killed in attacks where people were killed: {average_kills:.2f}")
+
+##############
+# deadliest weapons on average
+df = df_filtered.copy()
+
+# 1. Group by weapon type and calculate the average number of kills for each type
+weapon_type_avg_kills = df.groupby('weaptype1_txt')['nkill'].mean().sort_values(ascending=False)
+
+# 2. Group by weapon subtype and calculate the average number of kills for each subtype
+weapon_subtype_avg_kills = df.groupby('weapsubtype1_txt')['nkill'].mean().sort_values(ascending=False)
+
+# 3. Print the results with added explanation
+print("Most deadly attacks on average by Weapon Type (average number of deaths when weapon type used):")
+for weapon, avg_kills in weapon_type_avg_kills.head().items():
+    print(f"{weapon}: {avg_kills:.2f} average deaths")
+
+print("\nMost deadly attacks on average by Weapon Subtype (average number of deaths when weapon subtype used):")
+for subtype, avg_kills in weapon_subtype_avg_kills.head().items():
+    print(f"{subtype}: {avg_kills:.2f} average deaths")
+
 ##########
 # Gun attacks over time
-
+"""
 df_filtered = df_filtered.copy()
 df_filtered['date'] = pd.to_datetime(df_filtered['date'], errors='coerce')
 
@@ -63,7 +167,7 @@ fig.show()
 
 # Export the plot to an HTML file
 fig.write_html("gun_attacks_per_year.html")
-
+"""
 ##################
 """
 # Explosive attacks over time
