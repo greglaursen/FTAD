@@ -29,6 +29,7 @@ df_filtered = df_Israel[df_Israel['provstate'].isin(areas_of_interest)]
 df_filtered['date'] = pd.to_datetime(df_filtered['date'], errors='coerce')
 ##########
 #Descriptive statistics
+"""
 df = df_filtered.copy()
 
 
@@ -130,8 +131,60 @@ for weapon, avg_kills in weapon_type_avg_kills.head().items():
 print("\nMost deadly attacks on average by Weapon Subtype (average number of deaths when weapon subtype used):")
 for subtype, avg_kills in weapon_subtype_avg_kills.head().items():
     print(f"{subtype}: {avg_kills:.2f} average deaths")
-
+"""
 ##########
+# hot vs cold attacks
+print(df_filtered['weapsubtype1_txt'].unique())
+
+df = df_filtered.copy()
+df['year'] = df['date'].dt.year
+
+cold = ['Knife or Other Sharp Object', 'Blunt Object', 'Rope or Other Strangling Device', 'Hands, Feet, Fists', 'Vehicle']
+hot = ['Unknown Explosive Type', 'Automatic or Semi-Automatic Rifle','Letter Bomb', 'Grenade', 'Handgun', 'Time Fuse', 'Projectile (rockets, mortars, RPGs, etc.)', 'Rifle/Shotgun (non-automatic)', 'Unknown Gun Type',
+       'Molotov Cocktail/Petrol Bomb', 'Other Explosive Type', 'Landmine', 'Arson/Fire', 'Suicide (carried bodily by human being)', 'Gasoline or Alcohol', 'Remote Trigger', 'Other Gun Type', 'Sticky Bomb']
+
+# Filter the dataframe for hot and cold attacks
+df['attack_type'] = df['weapsubtype1_txt'].apply(lambda x: 'cold' if x in cold else ('hot' if x in hot else 'other'))
+
+# Group by year and attack type (hot/cold) to count the number of attacks
+attack_counts = df[df['attack_type'].isin(['hot', 'cold'])].groupby(['year', 'attack_type']).size().unstack(fill_value=0)
+
+# Create the line chart
+fig = go.Figure()
+
+# Add a line for cold attacks
+fig.add_trace(go.Scatter(
+    x=attack_counts.index, 
+    y=attack_counts['cold'], 
+    mode='lines+markers', 
+    name='Cold Attacks', 
+    line=dict(color='blue')
+))
+
+# Add a line for hot attacks
+fig.add_trace(go.Scatter(
+    x=attack_counts.index, 
+    y=attack_counts['hot'], 
+    mode='lines+markers', 
+    name='Hot Attacks', 
+    line=dict(color='red')
+))
+
+# Update layout for better visuals
+fig.update_layout(
+    title="Number of Hot and Cold Attacks Over Time",
+    xaxis_title="Year",
+    yaxis_title="Number of Attacks",
+    template="plotly_dark",
+    hovermode="x unified"
+)
+
+# Show the figure
+fig.show()
+
+fig.write_html("hot_vs_cold_attacks_over_time.html")
+
+#########
 # Attack Types per Year : bar chart w slider
 """
 df = df_filtered.copy()
@@ -211,7 +264,7 @@ fig.write_html("attack_types_by_year.html")
 """
 ############
 # Weapons Type per Year : bar chart with slider
-
+"""
 df = df_filtered.copy()
 df['year'] = df['date'].dt.year
 
@@ -285,6 +338,7 @@ fig = go.Figure(
 
 # Optionally, you can display the figure in Jupyter notebook (if using Jupyter)
 fig.show()
+"""
 ###########
 # Gun attacks over time
 """
