@@ -899,7 +899,7 @@ fig.update_layout(
 fig.show()
 
 
-fig.write_html('scatter_individual_attacks.html')
+fig.write_html('scatter_individual_attacks.html', auto_play=False)
 #print(df_filtered['provstate'].unique())
 
 ############
