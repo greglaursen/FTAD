@@ -134,6 +134,7 @@ for subtype, avg_kills in weapon_subtype_avg_kills.head().items():
 """
 ##########
 # hot vs cold attacks
+"""
 print(df_filtered['weapsubtype1_txt'].unique())
 
 df = df_filtered.copy()
@@ -183,7 +184,7 @@ fig.update_layout(
 fig.show()
 
 fig.write_html("hot_vs_cold_attacks_over_time.html")
-
+"""
 #########
 # Attack Types per Year : bar chart w slider
 """
@@ -379,8 +380,8 @@ fig.show()
 fig.write_html("gun_attacks_per_year.html")
 """
 ##################
-"""
 # Explosive attacks over time
+"""
 df_filtered = df_filtered.copy()
 df_filtered['date'] = pd.to_datetime(df_filtered['date'], errors='coerce')
 
@@ -799,7 +800,7 @@ fig.write_html("scatter_monthly_attacks.html")
 """
 ################
 # SCATTER INDIVIDUAL ATTACKS
-"""
+
 # Copy the dataframe to avoid modification of the original
 df_filtered = df_filtered.copy()
 
@@ -872,11 +873,12 @@ fig.update_layout(
 fig.show()
 
 
-#fig.write_html('scatter_individual_attacks.html')
+fig.write_html('scatter_individual_attacks.html')
 #print(df_filtered['provstate'].unique())
-"""
+
 ############
 # MONTHLY INCIDENTS - JANUARY 2019
+"""
 # Creating the DataFrame
 data_jan2019 = {
     "month": ["January"] * 13,
@@ -903,7 +905,7 @@ df_jan2019 = pd.DataFrame(data_jan2019)
 
 # Replacing string "NaN" with actual NaN values
 df_jan2019.replace("NaN", pd.NA, inplace=True)
-
+"""
 """
 # Count the number of incidents per weapon type
 weapon_counts = df_jan2019["weapsubtype1_txt"].value_counts()
