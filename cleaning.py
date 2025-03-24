@@ -850,6 +850,32 @@ fig.update_layout(
     )
 )
 
+# Prevent autoplay and start in a paused state
+fig.update_layout(
+    updatemenus=[{
+        "buttons": [
+            {
+                "args": [None, {"frame": {"duration": 500, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}],
+                "label": "Play",
+                "method": "animate"
+            },
+            {
+                "args": [[None], {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}],
+                "label": "Pause",
+                "method": "animate"
+            }
+        ],
+        "direction": "left",
+        "pad": {"r": 10, "t": 87},
+        "showactive": False,
+        "type": "buttons",
+        "x": 0.1,
+        "xanchor": "right",
+        "y": 0,
+        "yanchor": "top"
+    }]
+)
+
 fig.update_layout(
     title={
         'text': "Individual Attacks (2005-2018)",
